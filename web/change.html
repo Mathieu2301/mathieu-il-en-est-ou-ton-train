@@ -1,0 +1,134 @@
+<style>
+	.slidecontainer {
+		width: 100%; /* Width of the outside container */
+	}
+
+	/* The slider itself */
+	.slider {
+		-webkit-appearance: none;  /* Override default CSS styles */
+		appearance: none;
+		width: 100%; /* Full-width */
+		height: 25px; /* Specified height */
+		background: #d3d3d3; /* Grey background */
+		outline: none; /* Remove outline */
+		opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+		-webkit-transition: .2s; /* 0.2 seconds transition on hover */
+		transition: opacity .2s;
+	}
+
+	/* Mouse-over effects */
+	.slider:hover {
+		opacity: 1; /* Fully shown on mouse-over */
+	}
+
+	/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */ 
+	.slider::-webkit-slider-thumb {
+		-webkit-appearance: none; /* Override default look */
+		appearance: none;
+		width: 25px; /* Set a specific slider handle width */
+		height: 25px; /* Slider handle height */
+		background: #4CAF50; /* Green background */
+		cursor: pointer; /* Cursor on hover */
+	}
+
+	.slider::-moz-range-thumb {
+		width: 25px; /* Set a specific slider handle width */
+		height: 25px; /* Slider handle height */
+		background: #4CAF50; /* Green background */
+		cursor: pointer; /* Cursor on hover */
+	}
+</style>
+<script src="./js/jscolor.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script type="text/javascript">
+
+	const socket = io();
+
+	$(function(){
+            
+		
+
+        socket.on('connect', function(){
+            document.title = "Connecté !";
+        });
+                
+        socket.on('disconnect', function(){
+			document.title = "Connexion perdue..."
+		});
+		
+		socket.on('set_percentage', function(percent){
+			slider.value = percent;
+			output.innerHTML = percent / 100;
+        });
+
+		var slider = document.getElementById("myRange");
+		var output = document.getElementById("demo");
+		output.innerHTML = slider.value;
+
+		slider.oninput = function() {
+			socket.emit('set_percentage', this.value);
+		}
+
+		$('#moins_btn').on('click', function(){
+			slider.value = slider.value - 5;
+			socket.emit('set_percentage', slider.value);
+		})
+
+		$('#plus_btn').on('click', function(){
+			slider.value = (slider.value * 1) + 5;
+			socket.emit('set_percentage', slider.value);
+		})
+
+		socket.on('set_log_msg', function(msg){
+			$('#log_msg').val(msg);
+        });
+
+		$('#log_msg_btn').on('click', function(){
+			socket.emit('set_log_msg', $('#log_msg').val());
+		})
+
+		$('#msg').bind('input propertychange', function() {
+			socket.emit('set_textarea', $('#msg').val());
+		})
+
+		socket.on('set_textarea', function(msg){
+			$('#msg').val(msg);
+		});
+
+		socket.on('bg_color_change', function(color){
+			document.getElementById('background_color').jscolor.fromString(color);
+		})
+
+		$('#poke_btn').on('click', function(){ socket.emit('poke'); })
+
+		$('#refresh_btn').on('click', function(){ socket.emit('refresh'); })
+
+	})
+
+	function update(color){
+		socket.emit('bg_color_change', color.toHEXString());
+	}
+
+</script>
+
+<div class="slidecontainer">
+	<button id="moins_btn" style="width: 100%;">-</button><input type="range" min="0" max="10000" value="0" class="slider" id="myRange"><button id="plus_btn" style="width: 100%;">+</button>
+	<p>Value: <span id="demo"></span>%</p>
+	</br></br>
+
+	Message de login :
+	<input type="text" id="log_msg"><button id="log_msg_btn">Valider</button>
+	</br></br>
+
+	<textarea type="text" id="msg" rows="10" cols="50"></textarea>
+
+	</br></br>
+	<button id="poke_btn" style="width: 25%;height: 5em;">Poke</button>
+
+	</br></br>
+	<button id="refresh_btn" style="width: 25%;height: 5em;">Refresh</button>
+
+	</br></br>
+	Background : <input class="jscolor {onFineChange:'update(this)'}" id="background_color">
+</div>

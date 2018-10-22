@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<meta name="author" content="Mathieu"/>
+	<meta name="Resource-type" content="Document"/>
+	<title>Mathieu il en est où ton train ?</title>
+
+	<link rel="icon" href="./favicon.ico"/>
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Lato:300,400,700"/>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
+	<script type="text/javascript">
+
+		$(function(){
+			
+            $('#main').hide();
+            $("body").css("overflow", "hidden");
+				
+			setTimeout(function(){
+				$(".charging").fadeOut(250);
+				setTimeout(function(){
+					$('#main').fadeIn(500);
+					setTimeout(function(){
+						$('#title').css('text-shadow', "black 0 0 10px")
+                        $('#title').css('font-size', "450%")
+					}, 100)
+				}, 200)
+			}, 700)
+            
+			const socket = io();
+
+            socket.on('connect', function(){
+                document.title = "Récupération des données...";
+            });
+
+            socket.on('set_percentage', function(percent){
+				setProgressPercent(percent);
+			});
+
+			socket.on('alert', function(msg){
+				if (msg != "") alert(msg);
+			});
+			
+			socket.on('poke', function(){
+				new Audio("https://www.memoclic.com/medias/sons-wav/1/336.wav").play();
+			});
+
+			socket.on('refresh', function(){
+				document.location.reload();
+			});
+			
+			socket.on('bg_color_change', function(color){
+				$('body').css('background-color', color);
+			})
+
+			$('#msg').bind('input propertychange', function() {
+				socket.emit('set_textarea', $('#msg').val());
+			})
+
+			$('#barre').css('top', "40%")
+
+			socket.on('set_textarea', function(msg){
+				$('#msg').val(msg);
+
+				if (msg != ""){
+					$('#msg').animate({
+						opacity: '1',
+						margin: '0.5% 0.5% 1%',
+						width: '95%',
+						height: '56%'
+					}, 300);
+					$('#barre').css("top", "0%");
+				}else{
+					$('#msg').animate({
+						opacity: '0',
+						margin: '5% 5% 1%',
+						width: '90%',
+						height: '20%'
+					}, 500);
+					$('#barre').css("top", "40%");
+				}
+			});
+                
+            socket.on('disconnect', function(){
+				document.title = "Connexion perdue..."
+			});
+			
+			var train_slider = document.getElementById("train_slider");
+			var _percent = 0;
+
+			function setProgressPercent(percent){
+				_percent = percent;
+				train_slider.value = percent;
+				document.title = "Il en est à " + Math.round(_percent / 10) /10 + "%";
+				console.log(Math.round(_percent / 10) /10 +"%")
+			}
+
+			train_slider.oninput = function(){
+				this.value = _percent;
+			}
+			
+		})
+
+		function o(url){
+			window.open(url);
+        }
+        
+    </script>
+
+    <style>
+		body {
+            font-family: 'Lato', Calibri, Arial, sans-serif;
+            color: #f2f2f2;
+		}
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: normal;
+        }
+
+		.charging { 
+			position: absolute;
+			width: 200px; 
+			height: 200px; 
+			top: 0; 
+			bottom: 0; 
+			left: 0; 
+			right: 0; 
+			margin: auto;
+		}
+
+		textarea {
+			padding: 10px;
+			line-height: 1.5;
+			border-radius: 5px;
+			border: 1px solid #ccc;
+			box-shadow: 1px 1px 1px #999;
+		}
+
+		.textarea-example {
+			font-family: sans-serif;
+		}
+
+		.textarea-example div {
+			margin-bottom: 20px;
+		}
+
+		label,
+		textarea {
+			display: block;
+			font-size: 12px;
+			letter-spacing: 1px;
+		}
+
+		label {
+			margin-bottom: 5px;
+		}
+
+	</style>
+	
+	<style>
+		.slidecontainer {
+			width: 100%;
+		}
+		
+		.slider {
+			-webkit-appearance: none;
+			width: 100%;
+			height: 10px;
+			border-radius: 5px;
+			background: #d3d3d3;
+			outline: none;
+			opacity: 0.7;
+			-webkit-transition: .2s;
+			transition: opacity .2s;
+		}
+		
+		.slider:hover {
+			opacity: 1;
+		}
+		
+		.slider::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			appearance: none;
+			width: 328px;
+			height: 160px;
+			border: 0;
+			background: url('contrasticon.png');
+			cursor: pointer;
+		}
+		
+		.slider::-moz-range-thumb {
+			width: 328px;
+			height: 160px;
+			border: 0;
+			background: url('contrasticon.png');
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+
+	<div class="charging"><img src="charging.png" height="100%" width="100%"></div>
+
+	<div id="main" class="ustxt">
+		<div id="barre" style="transition-duration: 1.5s; transition-timing-function: cubic-bezier(0, 1.26, 0.69, 1.01); background-color: rgb(0,0,0,0.4);left: 0%;height: 9em;width: 100%;top: 0%;position: absolute;text-align: -webkit-center;text-align: center;">
+            <!-- <h1 id="title" style="top: 5%;position: relative;font-size: 450%;transition-duration: 0.5s;">USP</h1> -->
+
+			<div class="slidecontainer">
+				<input type="range" min="0" max="10000" value="0" class="slider" id="train_slider" style="top: 65%; left: 0%; position: absolute;">
+			</div>
+		</div>
+		
+		<textarea type="text" id="msg" rows="10" cols="50" style="opacity: 0;position: absolute;bottom: 0; font-family: Lato, Calibri, Arial, sans-serif; font-size: 100%;"></textarea>
+
+        <div id="particles-js"></div>
+		
+	</div>
+	<script src="./js/particles.min.js"></script>
+	<script src="./js/app.js"></script>
+</body>
+</html>
