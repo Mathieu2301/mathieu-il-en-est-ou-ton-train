@@ -9,9 +9,12 @@ var log_message = "";
 var bg_color = "#2A9032";
 var percentage = 0;
 var textarea_message = "";
+var connected_users = 0;
 
 io.on('connection', function(client){
   console.log("Connect : " + client)
+  connected_users++;
+  io.emit('connected_users', connected_users);
 
   client.emit('set_percentage', percentage);
   client.emit('set_log_msg', log_message);
@@ -37,6 +40,11 @@ io.on('connection', function(client){
     io.emit('set_textarea', textarea_message);
   });
 
+  client.on('notify', function(msg){
+    console.log("Notification sent : " + msg)
+    io.emit('notify', msg);
+  });
+
   client.on('bg_color_change', function(color){
     bg_color = color;
     io.emit('bg_color_change', bg_color);
@@ -54,6 +62,8 @@ io.on('connection', function(client){
 
   client.on('disconnect', function(){
     console.log("Disconnect : " + client)
+    connected_users--;
+    io.emit('connected_users', connected_users);
   });
 });
 

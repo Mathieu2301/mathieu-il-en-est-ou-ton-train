@@ -48,6 +48,25 @@
 				new Audio("https://www.memoclic.com/medias/sons-wav/1/336.wav").play();
 			});
 
+			socket.on('notify', function(msg){
+				sendNotif(msg);
+			});
+
+			sendNotif("");
+
+			function sendNotif(msg){
+				if (!("Notification" in window)) {
+				}else if (Notification.permission === "granted") {
+					if (msg != "") var notification = new Notification(msg);
+				}else if (Notification.permission !== "denied") {
+					Notification.requestPermission().then(function (permission) {
+						if (permission === "granted") {
+							var notification = new Notification(msg);
+						}
+					});
+				}
+			}
+
 			socket.on('refresh', function(){
 				document.location.reload();
 			});

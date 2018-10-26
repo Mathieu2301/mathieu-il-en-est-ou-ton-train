@@ -46,15 +46,14 @@
 	const socket = io();
 
 	$(function(){
-            
-		
-
+        
         socket.on('connect', function(){
             document.title = "Connecté !";
         });
                 
         socket.on('disconnect', function(){
-			document.title = "Connexion perdue..."
+			document.title = "Connexion perdue...";
+			$("#clients_nbr").val("?");
 		});
 		
 		socket.on('set_percentage', function(percent){
@@ -88,12 +87,20 @@
 			socket.emit('set_log_msg', $('#log_msg').val());
 		})
 
+		$('#notify_btn').on('click', function(){
+			socket.emit('notify', $('#notify_msg').val());
+		})
+
 		$('#msg').bind('input propertychange', function() {
 			socket.emit('set_textarea', $('#msg').val());
 		})
 
 		socket.on('set_textarea', function(msg){
 			$('#msg').val(msg);
+		});
+
+		socket.on('connected_users', function(nbr){
+			$("#clients_nbr").text(nbr);
 		});
 
 		socket.on('bg_color_change', function(color){
@@ -131,4 +138,11 @@
 
 	</br></br>
 	Background : <input class="jscolor {onFineChange:'update(this)'}" id="background_color">
+
+	</br></br>
+	Clients : <span id="clients_nbr">?</span>
+	</br></br>
+
+	Notify :
+	<input type="text" id="notify_msg"><button id="notify_btn">Envoyer</button>
 </div>
